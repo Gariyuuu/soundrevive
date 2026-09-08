@@ -1,0 +1,18 @@
+{
+  "tier": "SMOKE",
+  "git_sha": "UNCOMMITTED",
+  "generated_at_utc": "2026-09-08T15:38:06Z",
+  "n_source_clips": 2,
+  "n_conditions": 2,
+  "n_tiers": 4,
+  "n_methods": 5,
+  "model_weights_sha256": "00490b76a647a2e464be3ddd05650769328cf543557c979940d674e4bda8b2ca",
+  "training_pairs": 16,
+  "training_epochs": 25,
+  "total_runtime_s": 64.17343401908875,
+  "clean_transcripts": {
+    "train_recording_heldout_segment": "often wished that Lewis Carroll might have found time to write...",
+    "heldout_recording_full": "according by Isana. The new adventures of Alice by John Ray, chapter 1, found in the attic. But the provoking kin only began on the other paw and pretended it hadn't heard the question. Which do you think it was? Mother closed the book and Sister Betsy and-"
+  },
+  "warning": "SMOKE-tier release. 2 source clips, 1 reader. Do not treat as a STANDARD-tier benchmark finding \u2014 see research/claims_registry.md and research/limitations.md."
+}

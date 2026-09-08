@@ -1,0 +1,21 @@
+.venv/
+*.egg-info/
+__pycache__/
+*.pyc
+.DS_Store
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Large / regeneratable audio artifacts — keep only committed demo clips under data/raw (small, licensed)
+data/degraded/
+data/restored/
+data/cache/
+*.pt
+*.ckpt
+node_modules/
+.next/
+site/.next/
+site/out/
+
+# Downloaded model weights — fetched via scripts/, hashes recorded in research/data_provenance.md
+models/weights/

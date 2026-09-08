@@ -1,0 +1,46 @@
+{
+  "clean_speech": [
+    {
+      "clip_id": "alice00_16k_clip",
+      "path": "data/raw/clean_speech/alice00_16k_clip.wav",
+      "source_archive_org_identifier": "newadventuresofalice_1302_librivox",
+      "source_file": "newadventuresofalice_00_rae.mp3",
+      "source_url": "https://archive.org/download/newadventuresofalice_1302_librivox/newadventuresofalice_00_rae.mp3",
+      "title": "New Adventures of Alice — 00 Foreword",
+      "reader": "John Rae",
+      "collection": "LibriVox (public-domain audiobook recordings)",
+      "license": "CC0 1.0 Universal (Public Domain Dedication)",
+      "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+      "verified_via": "archive.org metadata API (https://archive.org/metadata/newadventuresofalice_1302_librivox), 2026-09-07",
+      "retrieved_utc": "2026-09-07",
+      "processing": "ffmpeg: resampled to 16000 Hz mono, trimmed to 20.0s starting at source offset 8.0s, encoded PCM s16le WAV",
+      "sha256_wav": "cb11a056f45c37567c00bcf05831a731d56335afd3cbf720f9a33ec9841b1238",
+      "sample_rate_hz": 16000,
+      "channels": 1,
+      "duration_s": 20.0,
+      "notes": "LibriVox home-recorded audiobook narration — legally clean (public domain) but not studio-pristine; adequate for SMOKE-tier pipeline validation only, see research/limitations.md"
+    },
+    {
+      "clip_id": "alice01_16k_clip",
+      "path": "data/raw/clean_speech/alice01_16k_clip.wav",
+      "source_archive_org_identifier": "newadventuresofalice_1302_librivox",
+      "source_file": "newadventuresofalice_01_rae.mp3",
+      "source_url": "https://archive.org/download/newadventuresofalice_1302_librivox/newadventuresofalice_01_rae.mp3",
+      "title": "New Adventures of Alice — 01 Found in the Attic",
+      "reader": "John Rae",
+      "collection": "LibriVox (public-domain audiobook recordings)",
+      "license": "CC0 1.0 Universal (Public Domain Dedication)",
+      "license_url": "http://creativecommons.org/publicdomain/zero/1.0/",
+      "verified_via": "archive.org metadata API (https://archive.org/metadata/newadventuresofalice_1302_librivox), 2026-09-07",
+      "retrieved_utc": "2026-09-07",
+      "processing": "ffmpeg: resampled to 16000 Hz mono, trimmed to 20.0s starting at source offset 15.0s, encoded PCM s16le WAV",
+      "sha256_wav": "4c35f169d00bf1726f9fa54f0995478e8ee91aab92e3f8405ece3d6689cc5eb5",
+      "sample_rate_hz": 16000,
+      "channels": 1,
+      "duration_s": 20.0,
+      "notes": "See alice00_16k_clip notes."
+    }
+  ],
+  "tier": "SMOKE",
+  "warning": "This manifest covers the SMOKE-tier corpus only (2 clips, 1 speaker/reader). Do not treat any result computed from it as a STANDARD-tier benchmark finding. See research/claims_registry.md."
+}
