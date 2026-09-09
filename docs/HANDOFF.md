@@ -3,21 +3,25 @@
 Canonical, living status document. Read this first in any new session — it is more current
 than `research/implementation_plan.md`, which records the plan, not day-to-day state.
 
-Last updated: 2026-09-08 (repo's first build session).
+Last updated: 2026-09-08 (repo's first build session, two pipeline tiers).
 
 ## One-paragraph status
 
-The repo now has a real, tested, deterministic, end-to-end SMOKE-tier pipeline: 2 CC0
-LibriVox clips → historically-motivated degradation chains (4 tiers) → 4 classical baselines
-+ 1 discriminative ML denoiser → alignment → SI-SDR/SDR/log-spectral-distance/STOI/ASR-WER
-metrics → provenance-tagged Parquet/JSON results. 22 tests pass, lint is clean. A separate
-research pass verified real dataset licensing (`research/data_provenance.md`) and compiled a
-25-entry real literature matrix (`research/literature_matrix.csv`). Everything from brief §41
-onward (the Next.js site), the paper, figures, a generative-restoration method, the
-hallucination-proxy panel beyond ASR-WER, generalization splits, Regime B case studies, CI's
-frontend leg, and deployment are **not built yet**. This was one build session's worth of
-work on an 80-section brief; treat it as Phase 0-7 of `research/implementation_plan.md` done,
-Phase 8+ open.
+The repo has a real, tested, deterministic, end-to-end pipeline running at two tiers: SMOKE
+(2 CC0 LibriVox clips, 1 speaker, pipeline-mechanics check) and STANDARD (48-clip, 12-speaker
+LibriSpeech dev-clean subset, CC BY 4.0, with a genuine train/eval speaker split). Both go
+clean → historically-motivated degradation chains (4 tiers) → 4 classical baselines + 1
+discriminative ML denoiser → alignment → SI-SDR/SDR/log-spectral-distance/STOI/ASR-WER
+metrics → provenance-tagged Parquet/JSON results. 24 tests pass, lint is clean. The STANDARD
+run produced the strongest real finding in the repo so far — the ML denoiser generalizes to
+unseen speakers on signal-fidelity metrics but *not* on content preservation, see below. A
+separate research pass verified real dataset licensing (`research/data_provenance.md`) and
+compiled a 25-entry real literature matrix (`research/literature_matrix.csv`). Everything
+from brief §41 onward (the Next.js site), the paper, figures, a generative-restoration
+method, the hallucination-proxy panel beyond ASR-WER, Regime B case studies, CI's frontend
+leg, and deployment are **not built yet**. Treat this as Phase 0-7 of
+`research/implementation_plan.md` done (SMOKE), with STANDARD-tier data + a first
+generalization result now added on top; Phase 8+ (generative method, site, paper) still open.
 
 ## Environment notes (read before running anything)
 
@@ -41,16 +45,19 @@ Phase 8+ open.
 | Degradation primitives | `src/soundrevive/degradation/primitives.py` | 10 primitives, deterministic, tested |
 | Tiers + canonical chain | `src/soundrevive/degradation/tiers.py` | 4 tiers; wow/flutter excluded from the default chain (see "Findings" below) |
 | Classical baselines | `src/soundrevive/baselines/` | passthrough, spectral_gate, wiener, median_declick — all tested against real speech, not just synthetic tones |
-| Discriminative ML | `src/soundrevive/ml/denoiser.py` | STFT-mask conv model, trained on augmented pairs from the 2-clip corpus |
-| Metrics | `src/soundrevive/metrics/` | SI-SDR, SDR, SNR-improvement, log-spectral-distance, STOI, alignment (FFT cross-correlation), clipping, ASR-WER (whisper-tiny.en) |
-| Pipeline | `src/soundrevive/pipeline/run_pipeline.py` | full SMOKE run: 2 clips × 4 tiers × 5 methods, writes `results/*.parquet` + `release.json` |
-| Data | `data/manifest.json`, `data/raw/clean_speech/*.wav` | 2 CC0 LibriVox clips, provenance recorded, hash-checked by a test |
-| Tests | `tests/` | 22 tests: determinism, metrics correctness, baseline effectiveness on real speech, manifest/provenance integrity |
+| Discriminative ML | `src/soundrevive/ml/denoiser.py` | STFT-mask conv model; SMOKE trains on the 2-clip corpus, STANDARD trains only on `train_pool` speakers |
+| Metrics | `src/soundrevive/metrics/` | SI-SDR, SDR, SNR-improvement, log-spectral-distance, STOI, alignment (FFT cross-correlation), clipping, ASR-WER (whisper-tiny.en, normalized via Whisper's EnglishTextNormalizer before scoring) |
+| Pipeline (SMOKE) | `src/soundrevive/pipeline/run_pipeline.py` | 2 clips × 4 tiers × 5 methods, writes `results/*.parquet` + `release.json` |
+| Pipeline (STANDARD) | `src/soundrevive/pipeline/run_standard.py` | 24 eval_pool clips × 4 tiers × 5 methods, ML trained only on 24 train_pool clips (disjoint speakers), writes `results/standard/*.parquet` + `release.json` |
+| Data | `data/manifest.json` | 2 CC0 LibriVox clips (`data/raw/clean_speech/`) + 48 CC BY 4.0 LibriSpeech dev-clean clips, 12 speakers (`data/raw/librispeech_dev_clean/`), all provenance-recorded and hash-checked by tests |
+| Tests | `tests/` | 24 tests: determinism, metrics correctness (incl. WER normalization regression), baseline effectiveness on real speech, manifest/provenance/speaker-split integrity |
 | Lint/CI | `pyproject.toml` (ruff config), `.github/workflows/ci.yml` | ruff + pytest only; no frontend job yet |
 | Research docs | `research/*.md`, `research/literature_matrix.csv` | see below |
 
-Run it: `make setup && make test && make benchmark` (takes ~1-2 min on CPU; first run also
-downloads whisper-tiny.en, ~72 MB).
+Run it: `make setup && make test && make benchmark` (SMOKE, ~1-2 min) or
+`make benchmark-standard` (STANDARD, ~7-8 min on an unloaded CPU — training pairs build in
+under a second, training takes ~40s, the eval loop is ASR-transcription-dominated). First run
+of either also downloads whisper-tiny.en, ~72 MB.
 
 ## Bugs found and fixed in this session (worth knowing before touching this code)
 
@@ -82,59 +89,77 @@ downloads whisper-tiny.en, ~72 MB).
    chain; kept available via `include_wow_flutter=True` for a dedicated experiment, which is
    where the brief's own §39 already says wow/flutter correction belongs.
 
-All five are documented in more depth in `research/limitations.md` under "What the first
-SMOKE-tier run actually found" — read that section before trusting or extending the current
-numbers.
+6. **WER normalization bug** (`src/soundrevive/metrics/intelligibility.py`): comparing a raw
+   Whisper hypothesis against the raw LibriSpeech ground-truth transcript (all-caps, no
+   punctuation, spelled-out abbreviations) scored WER=1.0 on a *perfect* transcription, purely
+   from formatting. Fixed by normalizing both strings through Whisper's own
+   `EnglishTextNormalizer` before scoring — the standard approach for evaluating Whisper
+   against corpora like LibriSpeech. Would have silently invalidated every STANDARD-run WER
+   number had it not been caught before that run.
 
-## A real (if tiny-sample) finding from the corrected SMOKE run
+All six are documented in more depth in `research/limitations.md` — read "What the first
+SMOKE-tier run actually found" and "What the STANDARD-tier run actually found" before
+trusting or extending the current numbers.
 
-The discriminative ML denoiser and log-spectral-distance disagree with SI-SDR about whether
-it helped: SI-SDR sometimes improves at SEVERE/EXTREME tiers (up to +6-7 dB improvement vs.
-passthrough) while log-spectral-distance is consistently ~2-3x worse than every classical
-baseline at every tier, and at LIGHT/MODERATE tiers the ML method actively *hurts* SI-SDR
-relative to doing nothing. This is directly relevant to RQ2/H2 (fidelity vs. quality
-divergence) and brief §74 (metric disagreement) — but it's 2 clips/1 reader, so it is
-reported as an observation, not a finding; see `research/claims_registry.md` row C1.
+## The headline finding so far (STANDARD-tier, real speaker-held-out test)
+
+Trained the ML denoiser on 6 LibriSpeech speakers, evaluated on 6 completely different,
+never-trained-on speakers (24 clips). Two things came out of it, both checked per-speaker
+(not just as averages) so they're not an artifact of 1-2 outlier clips:
+
+1. **The ML denoiser generalizes on signal fidelity**: it beats every classical baseline on
+   SI-SDR and log-spectral-distance at MODERATE/SEVERE/EXTREME tiers, in 12/12 held-out
+   speaker×tier combinations at SEVERE+EXTREME.
+2. **It does not generalize on content preservation**: it has the *worst* ASR-WER of any
+   method at every tier, and *increases* WER relative to the unrestored input at every tier —
+   while classical Wiener filtering often *decreases* WER despite a lower SI-SDR. In the same
+   12 speaker×tier combinations where the ML method wins on SI-SDR, it has a worse WER-delta
+   than Wiener in 10/12 of them.
+
+This is a real, cross-speaker-consistent version of the project's central tension: the method
+that looks best on signal-fidelity metrics measurably changes more words than doing nothing,
+while a classical method with worse fidelity numbers actually helps transcribability. Full
+writeup: `research/claims_registry.md` row C6, `research/limitations.md` "What the
+STANDARD-tier run actually found." Still only 6 held-out speakers — real and consistent, but
+not yet a bootstrap-CI'd effect size (§51 statistics not implemented).
 
 ## What's NOT built (the majority of the brief)
 
-Roughly in the order `research/implementation_plan.md` recommends tackling them:
+Roughly in priority order:
 
 1. **A generative-restoration method.** Nothing in v1 has a strength/aggressiveness
    parameter. This blocks RQ2/RQ3/RQ4/H2/H3/H4 and the paper's own flagship framing
    ("cleaner is not closer") — without a method that can trade fidelity for perceived
    quality, there's no fidelity-vs-quality frontier to plot. **This is the single highest-
-   leverage next step.**
-2. **STANDARD-tier clean corpus.** `research/data_provenance.md` recommends LJSpeech (true
-   public domain, verified) as primary, LibriSpeech (CC BY 4.0, verified) as secondary. Needs
-   a download script + manifest entries + re-running the pipeline at STANDARD scale.
-3. **Full hallucination-proxy panel.** Only the ASR-WER leg is wired into `run_pipeline.py`.
+   leverage next step**, and the STANDARD-tier WER-vs-fidelity divergence above is exactly
+   the kind of tension a generative method (higher perceived quality, presumably even more
+   content drift) would let the project characterize properly instead of gesture at with one
+   discriminative model.
+2. **Bootstrap statistics (§51/§75)** over clips/speakers with reported CIs — the STANDARD
+   finding above is real but currently reported as "consistent across N=6," not as an effect
+   size with uncertainty.
+3. **Full hallucination-proxy panel.** Only the ASR-WER leg is wired into either pipeline.
    The spectral-energy-outside-reference and ensemble-disagreement proxies described in
    `research/restoration_taxonomy.md` §4 need their own metric functions and wiring.
-4. **Generalization splits (RQ5)** — train/tune on one degradation distribution, eval on
-   unseen noise/bandwidth/severity/recording class. Not attempted; the SMOKE run's "held-out
-   recording" condition is the closest thing so far, and it's same-speaker/same-session.
-5. **Regime B (genuine historical recordings).** `research/data_provenance.md` identifies
+4. **Regime B (genuine historical recordings).** `research/data_provenance.md` identifies
    UCSB Cylinder Audio Archive (pre-1923 items, explicitly free for any use) as the safest
    redistributable historical source, and flags that no large rights-clear corpus of genuine
    historical *speech* exists — Regime B speech will be small-volume. Nothing downloaded yet.
-6. **Figures, paper, `/paper` and `/research-methods` site routes** (brief §46-49).
-7. **The Next.js site** (brief §41-45) — `/`, `/benchmark`, `/listen`, `/degradations`,
+5. **Figures, paper, `/paper` and `/research-methods` site routes** (brief §46-49).
+6. **The Next.js site** (brief §41-45) — `/`, `/benchmark`, `/listen`, `/degradations`,
    `/methods`, `/fidelity`, `/hallucination`, `/historical`, `/study`. Nothing scaffolded.
    `site/` directory exists but is empty.
-8. **Human listening study.** Infrastructure not built. Per brief §32/§54/`research/
+7. **Human listening study.** Infrastructure not built. Per brief §32/§54/`research/
    claims_registry.md` row C8: **no human data exists**; do not report any preference number
    until this changes, and label any future pipeline test explicitly `SIMULATED PIPELINE`.
-9. **CI frontend leg, Vercel deployment.** Nothing to deploy yet (no site).
-10. **Reviewer-2 pass** (brief §77) — premature before the above exists.
+8. **CI frontend leg, Vercel deployment.** Nothing to deploy yet (no site).
+9. **Reviewer-2 pass** (brief §77) — premature before the above exists.
 
 ## Suggested next session's first move
 
-Either (a) add a generative-restoration participant (even a small strength-controllable
-model — e.g. a diffusion or VAE-based bandwidth-extension/inpainting model with a tunable
-guidance/strength parameter) so RQ2/RQ3/H2/H3 become answerable, or (b) scale to the
-STANDARD-tier LJSpeech corpus so the existing classical+discriminative comparison has more
-than 2 clips behind it. (a) unlocks more of the brief's actual scientific point; (b) is lower
-risk and makes every existing number more trustworthy. Recommend (b) first since it's
-lower-risk and makes (a)'s eventual results more trustworthy too — but this is a judgment
-call, not dictated by the brief.
+Add a generative-restoration participant with a tunable strength parameter (e.g. a small
+diffusion or VAE-based bandwidth-extension/inpainting model). The STANDARD-tier corpus and
+speaker split already exist and are ready to reuse — `run_standard.py`'s structure (train
+only on `train_pool`, eval only on `eval_pool`, real transcripts for WER) generalizes
+directly to a second method. This is what unlocks RQ2/RQ3/H2/H3 and the paper's flagship
+framing; everything else on the "not built" list is lower-leverage until this exists.

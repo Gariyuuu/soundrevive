@@ -1,4 +1,4 @@
-.PHONY: setup data-smoke degrade restore-smoke benchmark hallucination analyze figures paper site test reproduce
+.PHONY: setup data-smoke benchmark-standard degrade restore-smoke benchmark hallucination analyze figures paper site test reproduce
 
 VENV := .venv/bin
 
@@ -8,12 +8,16 @@ setup:
 	$(VENV)/pip install -e .
 	$(VENV)/pip install -r requirements.txt
 
-# The SMOKE-tier clean corpus is already committed under data/raw/clean_speech/ (2 CC0
-# LibriVox clips, see data/manifest.json) — nothing to download for the smoke pipeline.
-# A STANDARD-tier `data-standard` target (fetching LJSpeech/LibriSpeech per
-# research/data_provenance.md) is not implemented yet; see docs/HANDOFF.md.
+# Both corpora are already committed — nothing to download.
+# SMOKE: data/raw/clean_speech/ (2 CC0 LibriVox clips).
+# STANDARD: data/raw/librispeech_dev_clean/ (48-clip, 12-speaker CC BY 4.0 subset of
+# LibriSpeech dev-clean, with a real train_pool/eval_pool speaker split — see
+# data/manifest.json's librispeech_speaker_split and research/data_provenance.md).
 data-smoke:
 	$(VENV)/python -m pytest tests/test_manifest_and_provenance.py -q
+
+benchmark-standard:
+	$(VENV)/python -m soundrevive.pipeline.run_standard
 
 degrade:
 	$(VENV)/python -c "from soundrevive.pipeline.run_pipeline import build_training_pairs; print(len(build_training_pairs(16000)), 'degraded training pairs built (in-memory smoke check)')"

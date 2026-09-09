@@ -1,0 +1,18 @@
+{
+  "tier": "STANDARD",
+  "git_sha": "5cf6fcd",
+  "generated_at_utc": "2026-09-09T03:35:09Z",
+  "corpus": "LibriSpeech dev-clean subset (OpenSLR 12, CC BY 4.0)",
+  "n_train_pool_clips": 24,
+  "n_eval_pool_clips": 24,
+  "n_train_pool_speakers": 6,
+  "n_eval_pool_speakers": 6,
+  "speaker_generalization": "eval_pool speakers never appear in any ML-denoiser training pair",
+  "n_tiers": 4,
+  "n_methods": 5,
+  "model_weights_sha256": "5224af96b442036f2e5495cf4161aa5f93e540d413bb15eeb919a2f11a5f0ca8",
+  "training_pairs": 96,
+  "training_epochs": 15,
+  "total_runtime_s": 436.6724922657013,
+  "warning": "STANDARD-tier release: 48 clips, 12 speakers, real speaker-held-out generalization split. Still a modest N for bootstrap CIs across clips/speakers -- see research/limitations.md before treating any single-clip difference as significant. Ground-truth transcripts are real human LibriSpeech labels, not ASR pseudo-labels."
+}

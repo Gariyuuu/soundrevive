@@ -15,7 +15,25 @@ def test_manifest_clips_exist_and_hashes_match():
 
 def test_manifest_declares_smoke_tier():
     manifest = load_manifest()
-    assert manifest["tier"] == "SMOKE"
+    assert "SMOKE" in manifest["tier"]
+    assert "STANDARD" in manifest["tier"]
+
+
+def test_librispeech_speaker_split_is_disjoint_and_matches_clips():
+    manifest = load_manifest()
+    split = manifest["librispeech_speaker_split"]
+    train_pool, eval_pool = set(split["train_pool"]), set(split["eval_pool"])
+    assert not (train_pool & eval_pool), "a speaker must not be in both pools"
+
+    ls_entries = [e for e in manifest["clean_speech"] if e["clip_id"].startswith("ls_")]
+    assert len(ls_entries) == 48
+    for entry in ls_entries:
+        assert entry["speaker_id"] in train_pool or entry["speaker_id"] in eval_pool
+        if entry["speaker_id"] in train_pool:
+            assert entry["speaker_split"] == "train_pool"
+        else:
+            assert entry["speaker_split"] == "eval_pool"
+        assert entry["transcript_reference"], f"missing ground-truth transcript for {entry['clip_id']}"
 
 
 def test_loaded_audio_is_mono_16k_float32():

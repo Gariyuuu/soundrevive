@@ -6,6 +6,7 @@ from soundrevive.metrics import (
     log_spectral_distance,
     si_sdr,
     snr_improvement,
+    word_error_rate,
 )
 
 
@@ -63,3 +64,12 @@ def test_clipping_fraction_detects_clipped_samples():
 def test_clipping_fraction_zero_for_clean_signal():
     ref = _tone() * 0.5
     assert clipping_fraction(ref) == 0.0
+
+
+def test_word_error_rate_normalizes_case_and_punctuation():
+    # Real regression: comparing a Whisper hypothesis against a LibriSpeech-style
+    # ground-truth transcript (all-caps, no punctuation, spelled-out abbreviations)
+    # scored WER=1.0 on a perfect transcription before normalization was added.
+    reference = "MISTER QUILTER IS THE APOSTLE OF THE MIDDLE CLASSES"
+    hypothesis = "Mr. Quilter is the apostle of the middle classes."
+    assert word_error_rate(hypothesis, reference) == 0.0

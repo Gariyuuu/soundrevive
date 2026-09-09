@@ -9,6 +9,22 @@ import numpy as np
 from pystoi import stoi as _stoi
 
 _WHISPER_MODEL = None
+_TEXT_NORMALIZER = None
+
+
+def _normalize(text: str) -> str:
+    """Case/punctuation/number-format normalization before WER/CER (via Whisper's own
+    EnglishTextNormalizer). Without this, comparing a Whisper hypothesis against a
+    ground-truth transcript in a different convention (e.g. LibriSpeech's all-caps,
+    no-punctuation, spelled-out-abbreviation style) inflates WER to ~1.0 on a perfect
+    transcription purely from formatting, not content — verified empirically: "MISTER
+    QUILTER IS..." vs. "Mr. Quilter is..." scores WER=1.0 unnormalized, 0.0 normalized."""
+    global _TEXT_NORMALIZER
+    if _TEXT_NORMALIZER is None:
+        from whisper.normalizers import EnglishTextNormalizer
+
+        _TEXT_NORMALIZER = EnglishTextNormalizer()
+    return _TEXT_NORMALIZER(text)
 
 
 def stoi_score(estimate: np.ndarray, reference: np.ndarray, sr: int) -> float:
@@ -42,7 +58,10 @@ def word_error_rate(hypothesis: str, reference: str) -> float:
 
     if not reference.strip():
         return float("nan")
-    return float(jiwer.wer(reference, hypothesis))
+    ref_norm, hyp_norm = _normalize(reference), _normalize(hypothesis)
+    if not ref_norm.strip():
+        return float("nan")
+    return float(jiwer.wer(ref_norm, hyp_norm))
 
 
 def char_error_rate(hypothesis: str, reference: str) -> float:
@@ -50,4 +69,7 @@ def char_error_rate(hypothesis: str, reference: str) -> float:
 
     if not reference.strip():
         return float("nan")
-    return float(jiwer.cer(reference, hypothesis))
+    ref_norm, hyp_norm = _normalize(reference), _normalize(hypothesis)
+    if not ref_norm.strip():
+        return float("nan")
+    return float(jiwer.cer(ref_norm, hyp_norm))
