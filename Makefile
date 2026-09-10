@@ -1,4 +1,4 @@
-.PHONY: setup data-smoke benchmark-standard degrade restore-smoke benchmark hallucination analyze figures paper site test reproduce
+.PHONY: setup data-smoke benchmark-standard degrade restore-smoke benchmark hallucination analyze figures paper site site-data site-build test reproduce
 
 VENV := .venv/bin
 
@@ -47,10 +47,17 @@ paper:
 	@echo "not implemented yet — see docs/HANDOFF.md"
 	@exit 1
 
-# The Next.js site is not implemented yet (brief §41) — see docs/HANDOFF.md.
+# Site (brief §41): currently one home page reporting the STANDARD-tier headline finding —
+# see site/README.md. The other routes (/benchmark, /listen, /degradations, ...) don't exist
+# yet, see docs/HANDOFF.md.
+site-data:
+	$(VENV)/python scripts/generate_site_summary.py
+
 site:
-	@echo "not implemented yet — see docs/HANDOFF.md"
-	@exit 1
+	cd site && npm run dev
+
+site-build:
+	cd site && npm run build
 
 test:
 	$(VENV)/python -m pytest -q

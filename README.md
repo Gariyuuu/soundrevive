@@ -13,10 +13,12 @@ Start here:
 ## Quickstart
 
 ```
-make setup      # python venv + deps
-make test       # pytest
-make benchmark  # run the SMOKE-tier pipeline (degrade -> restore -> measure -> results/)
+make setup             # python venv + deps
+make test              # pytest
+make benchmark         # SMOKE-tier pipeline (degrade -> restore -> measure -> results/)
+make benchmark-standard  # STANDARD-tier pipeline (48-clip LibriSpeech, real speaker split)
+make site              # dev server for site/ (one page so far, see site/README.md)
 ```
 
-See `Makefile` for the full target list (some, e.g. `figures`/`paper`/`site`, are not
-implemented yet — they fail loudly rather than silently no-op).
+See `Makefile` for the full target list (`figures`/`paper` are not implemented yet — they
+fail loudly rather than silently no-op).

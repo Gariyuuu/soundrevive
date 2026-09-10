@@ -1,0 +1,143 @@
+{
+  "generated_from": "results/standard/*.parquet + results/release.json (see research/claims_registry.md row C6)",
+  "smoke": {
+    "n_clips": 2,
+    "n_conditions": 2
+  },
+  "standard": {
+    "n_train_pool_clips": 24,
+    "n_eval_pool_clips": 24,
+    "n_train_pool_speakers": 6,
+    "n_eval_pool_speakers": 6,
+    "n_tiers": 4,
+    "n_methods": 5,
+    "corpus": "LibriSpeech dev-clean subset (OpenSLR 12, CC BY 4.0)"
+  },
+  "headline_finding": {
+    "ml_beats_wiener_on_si_sdr_severe_extreme_fraction": 1.0,
+    "ml_worse_wer_delta_than_wiener_severe_extreme_fraction": 0.8333,
+    "n_speaker_tier_combos_checked": 12
+  },
+  "tier_method_summary": [
+    {
+      "tier": "EXTREME",
+      "method": "median_declick",
+      "si_sdr_db": -4.224267225091656,
+      "log_spectral_distance_db": 30.030702271070908
+    },
+    {
+      "tier": "EXTREME",
+      "method": "passthrough",
+      "si_sdr_db": -4.22217149908344,
+      "log_spectral_distance_db": 30.03409718989919
+    },
+    {
+      "tier": "EXTREME",
+      "method": "spectral_gate",
+      "si_sdr_db": -2.7552624692519507,
+      "log_spectral_distance_db": 25.88884073216339
+    },
+    {
+      "tier": "EXTREME",
+      "method": "stft_mask_denoiser",
+      "si_sdr_db": 0.14924707636237144,
+      "log_spectral_distance_db": 16.97784622332698
+    },
+    {
+      "tier": "EXTREME",
+      "method": "wiener",
+      "si_sdr_db": -3.5757450560631696,
+      "log_spectral_distance_db": 28.280296077678646
+    },
+    {
+      "tier": "LIGHT",
+      "method": "median_declick",
+      "si_sdr_db": 11.46411138276259,
+      "log_spectral_distance_db": 13.73281782401344
+    },
+    {
+      "tier": "LIGHT",
+      "method": "passthrough",
+      "si_sdr_db": 12.27408210436503,
+      "log_spectral_distance_db": 13.396428840661452
+    },
+    {
+      "tier": "LIGHT",
+      "method": "spectral_gate",
+      "si_sdr_db": 12.206518948078156,
+      "log_spectral_distance_db": 13.285554725781692
+    },
+    {
+      "tier": "LIGHT",
+      "method": "stft_mask_denoiser",
+      "si_sdr_db": 12.183835580945015,
+      "log_spectral_distance_db": 13.204599574979673
+    },
+    {
+      "tier": "LIGHT",
+      "method": "wiener",
+      "si_sdr_db": 12.298871546983719,
+      "log_spectral_distance_db": 13.016209525547666
+    },
+    {
+      "tier": "MODERATE",
+      "method": "median_declick",
+      "si_sdr_db": 6.415523694207271,
+      "log_spectral_distance_db": 18.056162189643008
+    },
+    {
+      "tier": "MODERATE",
+      "method": "passthrough",
+      "si_sdr_db": 6.62079853999118,
+      "log_spectral_distance_db": 17.989440836389914
+    },
+    {
+      "tier": "MODERATE",
+      "method": "spectral_gate",
+      "si_sdr_db": 6.704678921649854,
+      "log_spectral_distance_db": 16.166875091624785
+    },
+    {
+      "tier": "MODERATE",
+      "method": "stft_mask_denoiser",
+      "si_sdr_db": 7.012522457167506,
+      "log_spectral_distance_db": 14.44398567793879
+    },
+    {
+      "tier": "MODERATE",
+      "method": "wiener",
+      "si_sdr_db": 6.700489424169064,
+      "log_spectral_distance_db": 16.95412211350471
+    },
+    {
+      "tier": "SEVERE",
+      "method": "median_declick",
+      "si_sdr_db": 2.0443513601397476,
+      "log_spectral_distance_db": 23.52527953696792
+    },
+    {
+      "tier": "SEVERE",
+      "method": "passthrough",
+      "si_sdr_db": 2.082577705693742,
+      "log_spectral_distance_db": 23.528942474248854
+    },
+    {
+      "tier": "SEVERE",
+      "method": "spectral_gate",
+      "si_sdr_db": 2.6748953505108752,
+      "log_spectral_distance_db": 20.347236209563373
+    },
+    {
+      "tier": "SEVERE",
+      "method": "stft_mask_denoiser",
+      "si_sdr_db": 3.448691818242272,
+      "log_spectral_distance_db": 15.489841596550493
+    },
+    {
+      "tier": "SEVERE",
+      "method": "wiener",
+      "si_sdr_db": 2.378290841161894,
+      "log_spectral_distance_db": 22.06985870345464
+    }
+  ]
+}
